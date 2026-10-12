@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>房贷计算器2026 - 等额本息/等额本金在线计算 | 我的房贷计算器</title>
+<meta name="description" content="免费在线房贷计算器，支持等额本息与等额本金两种还款方式，快速计算每月还款额、总利息与还款总额，2026年最新房贷利率参考。">
+<style>
+  :root{--primary:#2563eb;--bg:#f5f7fb;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+  .wrap{max-width:760px;margin:0 auto;padding:24px 16px 60px}
+  h1{font-size:1.5rem;margin-bottom:6px}
+  .sub{color:var(--muted);font-size:.92rem;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:20px}
+  label{display:block;font-size:.9rem;margin:12px 0 6px;color:var(--muted)}
+  input[type=number],select{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:9px;font-size:1rem;outline:none}
+  input:focus,select:focus{border-color:var(--primary)}
+  .radio{display:flex;gap:12px;margin-top:6px}
+  .radio label{flex:1;margin:0;border:1px solid var(--border);border-radius:9px;padding:10px;text-align:center;cursor:pointer;color:var(--text)}
+  .radio input{margin-right:6px}
+  button{width:100%;margin-top:20px;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:1.05rem;cursor:pointer}
+  button:hover{background:#1d4ed8}
+  .result{display:none}
+  .result.show{display:block}
+  .big{text-align:center;margin:8px 0 16px}
+  .big .num{font-size:2.2rem;font-weight:700;color:var(--primary)}
+  .grid{display:flex;gap:12px;flex-wrap:wrap}
+  .grid>div{flex:1;min-width:150px;background:var(--bg);border-radius:10px;padding:12px;text-align:center}
+  .grid b{display:block;font-size:1.15rem;margin-top:4px}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.85rem}
+  th,td{border:1px solid var(--border);padding:8px;text-align:center}
+  th{background:var(--bg)}
+  h2{font-size:1.15rem;margin:28px 0 10px}
+  p,li{font-size:.93rem;color:#334155}
+  ul{padding-left:20px;margin:8px 0}
+  footer{margin-top:36px;color:var(--muted);font-size:.8rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>房贷计算器</h1>
+  <p class="sub">支持等额本息 / 等额本金，快速算出月供与总利息</p>
+
+  <div class="card">
+    <label>贷款总额（万元）</label>
+    <input type="number" id="amount" value="100" min="1">
+
+    <label>贷款年限</label>
+    <select id="years">
+      <option value="10">10 年</option>
+      <option value="20">20 年</option>
+      <option value="30" selected>30 年</option>
+    </select>
+
+    <label>年利率（%）</label>
+    <input type="number" id="rate" value="3.6" step="0.01" min="0.01">
+
+    <label>还款方式</label>
+    <div class="radio">
+      <label><input type="radio" name="type" value="bx" checked>等额本息</label>
+      <label><input type="radio" name="type" value="bj">等额本金</label>
+    </div>
+
+    <button onclick="calc()">开始计算</button>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="big">
+      <div id="bigLabel" style="color:var(--muted);font-size:.9rem">每月还款</div>
+      <div class="num" id="monthly">--</div>
+    </div>
+    <div class="grid">
+      <div>还款总额<b id="total">--</b></div>
+      <div>支付利息<b id="interest">--</b></div>
+      <div>贷款月数<b id="months">--</b></div>
+    </div>
+    <div id="planWrap" style="display:none">
+      <h2 style="font-size:1rem;margin:16px 0 4px">首年逐月还款明细（等额本金）</h2>
+      <table id="plan"></table>
+    </div>
+  </div>
+
+  <h2>房贷计算器怎么用？</h2>
+  <p>输入贷款总额、年限与年利率，选择还款方式后点击「开始计算」，即可得到每月还款额、总利息与还款总额。2026 年商业贷款利率以 LPR 报价为准，公积金贷款利率更低，可分别计算对比。</p>
+  <h2>等额本息与等额本金的区别</h2>
+  <ul>
+    <li><strong>等额本息</strong>：每月还款额固定，前期还的利息多、本金少，适合收入稳定的家庭。</li>
+    <li><strong>等额本金</strong>：每月本金固定，月供逐月递减，总利息更少，但前期还款压力大。</li>
+  </ul>
+  <p style="color:var(--muted);font-size:.85rem">计算结果仅供参考，实际以银行审批为准。</p>
+  <footer>© 2026 我的房贷计算器 · 免费在线工具</footer>
+</div>
+
+<script>
+function fmt(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function calc(){
+  var A=parseFloat(document.getElementById('amount').value)*10000;
+  var Y=parseInt(document.getElementById('years').value);
+  var R=parseFloat(document.getElementById('rate').value)/100/12;
+  var M=Y*12;
+  var type=document.querySelector('input[name=type]:checked').value;
+  if(!(A>0)||!(R>0)||M<=0){alert('请输入有效的金额和利率');return}
+  var monthly,total,interest;
+  if(type==='bx'){
+    monthly=A*R*Math.pow(1+R,M)/(Math.pow(1+R,M)-1);
+    total=monthly*M; interest=total-A;
+    document.getElementById('planWrap').style.display='none';
+  }else{
+    monthly=A/M+A*R;
+    total=(A/M)*(M+1)/2*R*M+A; interest=total-A;
+    var rows='<tr><th>月份</th><th>月供(元)</th><th>其中本金</th><th>其中利息</th></tr>';
+    var principal=A/M;
+    for(var i=1;i<=Math.min(12,M);i++){
+      var it=(A-(i-1)*principal)*R;
+      rows+='<tr><td>'+i+'</td><td>'+fmt(principal+it)+'</td><td>'+fmt(principal)+'</td><td>'+fmt(it)+'</td></tr>';
+    }
+    document.getElementById('plan').innerHTML=rows;
+    document.getElementById('planWrap').style.display='block';
+  }
+  document.getElementById('bigLabel').textContent=type==='bx'?'每月还款(固定)':'首月还款(逐月递减)';
+  document.getElementById('monthly').textContent='¥'+fmt(type==='bx'?monthly:A/M+A*R);
+  document.getElementById('total').textContent='¥'+fmt(total);
+  document.getElementById('interest').textContent='¥'+fmt(interest);
+  document.getElementById('months').textContent=M+' 个月';
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>
